@@ -1,0 +1,25 @@
+{
+    "flutter": {
+        "platforms": {
+            "android": {
+                "default": {
+                    "projectId": "finmanage-ecdfc",
+                    "appId": "1:984673865110:android:03d938410cbf9da553e1b7",
+                    "fileOutput": "android/app/google-services.json"
+                }
+            },
+            "dart": {
+                "lib/firebase_options.dart": {
+                    "projectId": "finmanage-ecdfc",
+                    "configurations": {
+                        "android": "1:984673865110:android:03d938410cbf9da553e1b7",
+                        "ios": "1:984673865110:ios:2a0933f480bce31f53e1b7",
+                        "macos": "1:984673865110:ios:2a0933f480bce31f53e1b7",
+                        "web": "1:984673865110:web:99d38dfd7b0b2c9e53e1b7",
+                        "windows": "1:984673865110:web:4430d2cc6bcb48ed53e1b7"
+                    }
+                }
+            }
+        }
+    }
+}
