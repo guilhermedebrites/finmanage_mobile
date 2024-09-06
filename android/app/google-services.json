@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "984673865110",
+    "project_id": "finmanage-ecdfc",
+    "storage_bucket": "finmanage-ecdfc.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:984673865110:android:03d938410cbf9da553e1b7",
+        "android_client_info": {
+          "package_name": "com.br.finmanage"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "984673865110-d3huqh809f5eum8n6p7pdf1lpc8jt4tr.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.br.finmanage",
+            "certificate_hash": "6704c1633b43c6615933e2aa152ed7a91b03d870"
+          }
+        },
+        {
+          "client_id": "984673865110-qbrd2osbps5abto1a4a7u86ql4cnshst.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDD8j_aoL59P4EFFQKpXLm-Xg3yYG-J5bQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "984673865110-qbrd2osbps5abto1a4a7u86ql4cnshst.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "984673865110-q1789bs3doljm8kjl6o5lcv737q586ng.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.finmanageMobile"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
