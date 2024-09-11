@@ -1,7 +1,6 @@
-import 'package:finmanage_mobile/start_screen.dart';
+import 'package:finmanage_mobile/starter_page/start_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-
 import 'firebase_options.dart';
 
 void main() async {
@@ -9,7 +8,7 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -27,4 +26,3 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-
