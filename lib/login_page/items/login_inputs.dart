@@ -1,45 +1,74 @@
-import 'package:finmanage_mobile/database_helper.dart';
+import 'package:finmanage_mobile/home_page/home_screen.dart';
 import 'package:flutter/material.dart';
 
-class InputsLogin extends StatelessWidget {
-  final TextEditingController? emailController;
-  final TextEditingController? passwordController;
+class InputsLogin extends StatefulWidget {
+  const InputsLogin({super.key});
 
-  final DatabaseHelper _dbHelper = DatabaseHelper();
+  @override
+  _InputsLoginState createState() => _InputsLoginState();
+}
 
-  InputsLogin({
-    super.key,
-    this.emailController,
-    this.passwordController,
-  });
+class _InputsLoginState extends State<InputsLogin> {
+  final _formKey = GlobalKey<FormState>();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        TextFormField(
-          controller: emailController,
-          decoration: const InputDecoration(
-            labelText: 'E-mail',
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.all(Radius.circular(32.0)),
+    return Form(
+      key: _formKey,
+      child: Column(
+        children: [
+          TextFormField(
+            controller: _emailController,
+            decoration: const InputDecoration(
+              labelText: 'E-mail',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.all(Radius.circular(32.0)),
+              ),
             ),
+            validator: (email) {
+              if(email == null || email.isEmpty) {
+                return 'Digite seu e-mail';
+              }
+              return null;
+            },
+            keyboardType: TextInputType.emailAddress,
           ),
-          keyboardType: TextInputType.emailAddress,
-        ),
-        const SizedBox(height: 16),
-        TextFormField(
-          controller: passwordController,
-          decoration: const InputDecoration(
-            labelText: 'Senha',
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.all(Radius.circular(32.0)),
+          const SizedBox(height: 16),
+          TextFormField(
+            controller: _passwordController,
+            decoration: const InputDecoration(
+              labelText: 'Senha',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.all(Radius.circular(32.0)),
+              ),
             ),
+            validator: (password) {
+              if(password == null || password.isEmpty) {
+                return 'Digite sua senha';
+              }
+              return null;
+            },
+            obscureText: true,
           ),
-          obscureText: true,
-        ),
-        const SizedBox(height: 20),
-      ],
+          const SizedBox(height: 20),
+          ElevatedButton(
+            onPressed: () {
+              if(_formKey.currentState!.validate()){
+                Navigator.push(context, MaterialPageRoute(builder: (context) => HomeScreen()));
+              }
+            },
+            style: ElevatedButton.styleFrom(
+            foregroundColor: Colors.white,
+            backgroundColor: const Color(0xFF4C9581),
+            ),
+            child: const Text('Acessar'),
+          )
+        ],
+      ),
     );
   }
+
 }
