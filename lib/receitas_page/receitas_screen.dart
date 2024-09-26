@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 
-import '../bottom_menu.dart';
-
 class ReceitasScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.pink,
+      backgroundColor: Colors.green,
       body: SingleChildScrollView(
         child: Container(
           child: const Center(
@@ -23,8 +21,7 @@ class ReceitasScreen extends StatelessWidget {
             ),
           ),
         ),
-      ),
-      bottomNavigationBar: const BottomMenu(), // Mover BottomMenu para bottomNavigationBar
+      ) // Mover BottomMenu para bottomNavigationBar
     );
   }
 }

@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../bottom_menu.dart';
-
 class DespesasScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -23,8 +21,7 @@ class DespesasScreen extends StatelessWidget {
             ),
           ),
         ),
-      ),
-      bottomNavigationBar: const BottomMenu(), // Mover BottomMenu para bottomNavigationBar
+      )// Mover BottomMenu para bottomNavigationBar
     );
   }
 }

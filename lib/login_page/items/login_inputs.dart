@@ -1,5 +1,6 @@
-import 'package:finmanage_mobile/home_page/home_screen.dart';
 import 'package:flutter/material.dart';
+
+import '../../starter_page/main_screen.dart';
 
 class InputsLogin extends StatefulWidget {
   const InputsLogin({super.key});
@@ -57,7 +58,7 @@ class _InputsLoginState extends State<InputsLogin> {
           ElevatedButton(
             onPressed: () {
               if(_formKey.currentState!.validate()){
-                Navigator.push(context, MaterialPageRoute(builder: (context) => HomeScreen()));
+                Navigator.push(context, MaterialPageRoute(builder: (context) => MainScreen()));
               }
             },
             style: ElevatedButton.styleFrom(
