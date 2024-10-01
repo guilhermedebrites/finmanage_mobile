@@ -6,6 +6,7 @@ class Despesa {
   final String name;
   final int idCategory;
   final int idUser;
+  final DateTime date;
 
   Despesa({
     required this.id,
@@ -13,5 +14,6 @@ class Despesa {
     required this.idCategory,
     required this.idUser,
     required this.name,
+    required this.date,
   });
 }

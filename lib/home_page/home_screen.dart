@@ -11,82 +11,12 @@ import 'itens/container_classification_categories.dart';
 import 'itens/container_finance_overview.dart';
 import 'itens/container_general_projection.dart';
 class HomeScreen extends StatelessWidget {
-  List<Category> categories = [
-    Category(name: 'Alimento', icon: Icons.fastfood, color: Colors.red),
-    Category(name: 'Transporte', icon: Icons.directions_car, color: Colors.blue),
-    Category(name: 'Entretenimento', icon: Icons.movie, color: Colors.green),
-    Category(name: 'Saúde', icon: Icons.local_hospital, color: Colors.purple),
-    Category(name: 'Educação', icon: Icons.school, color: Colors.orange),
-  ];
+  final List<Despesa> despesas;
+  final List<Receita> receitas;
+  final List<Category> categories;
 
-  List<Despesa> despesas = [
-    Despesa(
-      id: 1,
-      value: 100.0,
-      name: 'Almoço',
-      idCategory: 1,
-      idUser: 1,
-    ),
-    Despesa(
-      id: 2,
-      value: 50.0,
-      name: 'Uber',
-      idCategory: 2,
-      idUser: 1,
-    ),
-    Despesa(
-      id: 3,
-      value: 20.0,
-      name: 'Cinema',
-      idCategory: 3,
-      idUser: 1,
-    ),
-    Despesa(
-      id: 4,
-      value: 50.0,
-      name: 'Remédio',
-      idCategory: 4,
-      idUser: 1,
-    ),
-    Despesa(
-      id: 5,
-      value: 100.0,
-      name: 'Livro',
-      idCategory: 5,
-      idUser: 1,
-    ),
-  ];
+  const HomeScreen({super.key, required this.despesas, required this.receitas, required this.categories}) : super();
 
-  List<Receita> receitas = [
-    Receita(
-      id: 1,
-      value: 1000.0,
-      name: 'Salário',
-      idCategory: 1,
-      idUser: 1,
-    ),
-    Receita(
-      id: 2,
-      value: 50.0,
-      name: 'Freelancer',
-      idCategory: 2,
-      idUser: 1,
-    ),
-    Receita(
-      id: 3,
-      value: 20.0,
-      name: 'Venda',
-      idCategory: 3,
-      idUser: 1,
-    ),
-    Receita(
-      id: 4,
-      value: 50.0,
-      name: 'Investimento',
-      idCategory: 4,
-      idUser: 1,
-    ),
-  ];
 
   double calcularTotalReceita(List<Receita> receitas) {
     double total = 0.0;
@@ -164,6 +94,7 @@ class HomeScreen extends StatelessWidget {
                         categories: categories,
                         despesas: despesas,
                       ),
+                      const SizedBox(height: 50),
                     ],
                   ),
                 ],

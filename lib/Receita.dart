@@ -6,6 +6,7 @@ class Receita {
   final int idCategory;
   final int idUser;
   final String name;
+  final DateTime date;
 
   Receita({
     required this.id,
@@ -13,5 +14,6 @@ class Receita {
     required this.idCategory,
     required this.idUser,
     required this.name,
+    required this.date,
   });
 }
