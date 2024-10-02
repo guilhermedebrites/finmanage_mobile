@@ -3,15 +3,29 @@ import 'package:finmanage_mobile/despesas_page/items/header_secondary_pages.dart
 import 'package:finmanage_mobile/home_page/itens/box_icon.dart';
 import 'package:flutter/material.dart';
 import '../Category.dart';
+import 'package:finmanage_mobile/receitas_page/add_receita_screen.dart';
 
-class ReceitasScreen extends StatelessWidget {
+
+class ReceitasScreen extends StatefulWidget {
   final List<Receita> receitas;
   final List<Category> categories;
 
-  const ReceitasScreen({super.key, required this.receitas, required this.categories}) : super();
+  const ReceitasScreen(
+      {super.key, required this.receitas, required this.categories})
+      : super();
 
-  Category getCategoryById(int idCategory) {
-    return categories.firstWhere((category) => categories.indexOf(category) == idCategory - 1);
+  @override
+  _ReceitasScreenState createState() => _ReceitasScreenState();
+}
+
+class _ReceitasScreenState extends State<ReceitasScreen> {
+  int _nextId = 1;
+
+  void _addReceita(Receita novaReceita) {
+    setState(() {
+      widget.receitas.add(novaReceita);
+      _nextId++;
+    });
   }
 
   @override
@@ -35,13 +49,17 @@ class ReceitasScreen extends StatelessWidget {
           ),
           Expanded(
             child: ListView.builder(
-              itemCount: receitas.length,
+              itemCount: widget.receitas.length,
               itemBuilder: (context, index) {
-                final receita = receitas[index];
-                final category = getCategoryById(receita.idCategory);
+                final receita = widget.receitas[index];
+                final category = widget.categories
+                    .firstWhere((category) =>
+                widget.categories.indexOf(category) ==
+                    receita.idCategory - 1);
 
                 return Card(
-                  margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 20),
+                  margin:
+                  const EdgeInsets.symmetric(vertical: 4, horizontal: 20),
                   child: ListTile(
                     leading: BoxIcon(
                       icon: category.icon,
@@ -58,9 +76,28 @@ class ReceitasScreen extends StatelessWidget {
               },
             ),
           ),
-          const SizedBox(height: 50),
+          const SizedBox(height: 66),
         ],
       ),
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 10.0), // Adjust the value as needed
+        child: FloatingActionButton(
+          backgroundColor: Colors.white,
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => AddReceitaScreen(
+                  onAddReceita: _addReceita,
+                  nextId: _nextId,
+                ),
+              ),
+            );
+          },
+          child: const Icon(Icons.add, color: Colors.green),
+        ),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
 }

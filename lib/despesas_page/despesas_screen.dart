@@ -1,17 +1,29 @@
+import 'package:finmanage_mobile/despesas_page/items/add_despesa_screen.dart';
 import 'package:finmanage_mobile/despesas_page/items/header_secondary_pages.dart';
 import 'package:finmanage_mobile/home_page/itens/box_icon.dart';
 import 'package:flutter/material.dart';
 import '../Category.dart';
 import '../Despesa.dart';
 
-class DespesasScreen extends StatelessWidget {
+class DespesasScreen extends StatefulWidget {
   final List<Despesa> despesas;
   final List<Category> categories;
 
-  const DespesasScreen({super.key, required this.despesas, required this.categories}) : super();
+  const DespesasScreen(
+      {super.key, required this.despesas, required this.categories}) : super();
 
-  Category getCategoryById(int idCategory) {
-    return categories.firstWhere((category) => categories.indexOf(category) == idCategory - 1);
+  @override
+  _DespesasScreenState createState() => _DespesasScreenState();
+}
+
+class _DespesasScreenState extends State<DespesasScreen> {
+  int _nextId = 1;
+
+  void _addDespesa(Despesa novaDespesa) {
+    setState(() {
+      widget.despesas.add(novaDespesa);
+      _nextId++;
+    });
   }
 
   @override
@@ -35,10 +47,13 @@ class DespesasScreen extends StatelessWidget {
           ),
           Expanded(
             child: ListView.builder(
-              itemCount: despesas.length,
+              itemCount: widget.despesas.length,
               itemBuilder: (context, index) {
-                final despesa = despesas[index];
-                final category = getCategoryById(despesa.idCategory);
+                final despesa = widget.despesas[index];
+                final category = widget.categories
+                    .firstWhere((category) =>
+                widget.categories.indexOf(category) ==
+                    despesa.idCategory - 1);
 
                 return Card(
                   margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 20),
@@ -61,6 +76,25 @@ class DespesasScreen extends StatelessWidget {
           const SizedBox(height: 50),
         ],
       ),
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 10.0), // Adjust the value as needed
+        child: FloatingActionButton(
+          backgroundColor: Colors.white,
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => AddDespesaScreen(
+                  onAddDespesa: _addDespesa,
+                  nextId: _nextId,
+                ),
+              ),
+            );
+          },
+          child: const Icon(Icons.add, color: Colors.green),
+        ),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
 }
