@@ -26,6 +26,48 @@ class _DespesasScreenState extends State<DespesasScreen> {
     });
   }
 
+  void _deleteDespesa(int id) {
+    setState(() {
+      widget.despesas.removeWhere((despesa) => despesa.id == id);
+    });
+  }
+
+  void _confirmDelete(BuildContext context, int id) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Confirmar Deleção'),
+          content: Text('Você tem certeza que deseja deletar esta despesa?'),
+          actions: [
+            TextButton(
+              child: Text('Cancelar'),
+              onPressed: () {
+                Navigator.of(context).pop(); // Fecha o diálogo
+              },
+            ),
+            TextButton(
+              child: Text('Deletar'),
+              onPressed: () {
+                _deleteDespesa(id);
+                Navigator.of(context).pop(); // Fecha o diálogo
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _editDespesa(Despesa despesaEditada) {
+    setState(() {
+      final index = widget.despesas.indexWhere((despesa) => despesa.id == despesaEditada.id);
+      if (index != -1) {
+        widget.despesas[index] = despesaEditada;
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -65,11 +107,39 @@ class _DespesasScreenState extends State<DespesasScreen> {
                     ),
                     title: Text(despesa.name),
                     subtitle: Text('R\$ ${despesa.value.toStringAsFixed(2)}'),
-                    trailing: Text(
-                      '${despesa.date.day.toString().padLeft(2, '0')}/${despesa.date.month.toString().padLeft(2, '0')}/${despesa.date.year.toString()}',
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          '${despesa.date.day.toString().padLeft(2, '0')}/${despesa.date.month.toString().padLeft(2, '0')}/${despesa.date.year}',
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.edit, color: Colors.blue),
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => AddDespesaScreen(
+                                  onAddDespesa: _editDespesa, // Método de edição
+                                  despesaParaEditar: despesa,  // Passa a despesa a ser editada
+                                  nextId: _nextId,             // Caso queira reutilizar
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.delete, color: Colors.red),
+                          onPressed: () {
+                            _confirmDelete(context, despesa.id);
+                          },
+                        ),
+                      ],
                     ),
                   ),
                 );
+
+
               },
             ),
           ),

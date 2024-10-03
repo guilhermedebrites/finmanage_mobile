@@ -1,13 +1,17 @@
 import 'package:finmanage_mobile/Despesa.dart';
 import 'package:flutter/material.dart';
-import 'package:finmanage_mobile/Receita.dart';
 
 class AddDespesaScreen extends StatefulWidget {
   final Function(Despesa) onAddDespesa;
   final int nextId;
+  final Despesa? despesaParaEditar; // Parâmetro opcional para edição
 
-  const AddDespesaScreen(
-      {super.key, required this.onAddDespesa, required this.nextId});
+  const AddDespesaScreen({
+    super.key,
+    required this.onAddDespesa,
+    required this.nextId,
+    this.despesaParaEditar, // Parâmetro opcional
+  });
 
   @override
   _AddDespesaScreenState createState() => _AddDespesaScreenState();
@@ -18,6 +22,19 @@ class _AddDespesaScreenState extends State<AddDespesaScreen> {
   final TextEditingController _valueController = TextEditingController();
   final TextEditingController _categoryController = TextEditingController();
   final TextEditingController _dateController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+
+    if (widget.despesaParaEditar != null) {
+      // Preenche os campos com os valores da despesa a ser editada
+      _nameController.text = widget.despesaParaEditar!.name;
+      _valueController.text = widget.despesaParaEditar!.value.toString();
+      _categoryController.text = widget.despesaParaEditar!.idCategory.toString();
+      _dateController.text = widget.despesaParaEditar!.date.toIso8601String().split('T')[0];
+    }
+  }
 
   @override
   void dispose() {
@@ -36,8 +53,8 @@ class _AddDespesaScreenState extends State<AddDespesaScreen> {
     final DateTime? date = DateTime.tryParse(_dateController.text);
 
     if (name.isNotEmpty && value != null && date != null) {
-      final newDespesa = Despesa(
-        id: widget.nextId,
+      final despesa = Despesa(
+        id: widget.despesaParaEditar?.id ?? widget.nextId, // Usa o ID existente para edição ou gera um novo
         value: value,
         idCategory: category,
         idUser: userId,
@@ -45,8 +62,7 @@ class _AddDespesaScreenState extends State<AddDespesaScreen> {
         date: date,
       );
 
-      widget
-          .onAddDespesa(newDespesa);
+      widget.onAddDespesa(despesa); // Adiciona ou edita a despesa
       Navigator.pop(context);
     }
   }
@@ -55,7 +71,7 @@ class _AddDespesaScreenState extends State<AddDespesaScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Adicionar Receita"),
+        title: Text(widget.despesaParaEditar != null ? "Editar Despesa" : "Adicionar Despesa"),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -90,9 +106,8 @@ class _AddDespesaScreenState extends State<AddDespesaScreen> {
             ),
             const SizedBox(height: 20),
             ElevatedButton(
-              onPressed:
-              _saveDespesa,
-              child: const Text("Salvar"),
+              onPressed: _saveDespesa,
+              child: Text(widget.despesaParaEditar != null ? "Salvar Alterações" : "Salvar"),
             ),
           ],
         ),

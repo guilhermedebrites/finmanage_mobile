@@ -28,6 +28,48 @@ class _ReceitasScreenState extends State<ReceitasScreen> {
     });
   }
 
+  void _deleteReceita(int id) {
+    setState(() {
+      widget.receitas.removeWhere((receita) => receita.id == id);
+    });
+  }
+
+  void _confirmDelete(BuildContext context, int id) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Confirmar Deleção'),
+          content: Text('Você tem certeza que deseja deletar esta receita?'),
+          actions: [
+            TextButton(
+              child: Text('Cancelar'),
+              onPressed: () {
+                Navigator.of(context).pop(); // Fecha o diálogo
+              },
+            ),
+            TextButton(
+              child: Text('Deletar'),
+              onPressed: () {
+                _deleteReceita(id);
+                Navigator.of(context).pop(); // Fecha o diálogo
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _editReceita(Receita receitaEditada) {
+    setState(() {
+      final index = widget.receitas.indexWhere((receita) => receita.id == receitaEditada.id);
+      if (index != -1) {
+        widget.receitas[index] = receitaEditada;
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -58,8 +100,7 @@ class _ReceitasScreenState extends State<ReceitasScreen> {
                     receita.idCategory - 1);
 
                 return Card(
-                  margin:
-                  const EdgeInsets.symmetric(vertical: 4, horizontal: 20),
+                  margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 20),
                   child: ListTile(
                     leading: BoxIcon(
                       icon: category.icon,
@@ -68,11 +109,38 @@ class _ReceitasScreenState extends State<ReceitasScreen> {
                     ),
                     title: Text(receita.name),
                     subtitle: Text('R\$ ${receita.value.toStringAsFixed(2)}'),
-                    trailing: Text(
-                      '${receita.date.day.toString().padLeft(2, '0')}/${receita.date.month.toString().padLeft(2, '0')}/${receita.date.year.toString()}',
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          '${receita.date.day.toString().padLeft(2, '0')}/${receita.date.month.toString().padLeft(2, '0')}/${receita.date.year}',
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.edit, color: Colors.blue),
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => AddReceitaScreen(
+                                  onAddReceita: _editReceita,
+                                  receitaParaEditar: receita,
+                                  nextId: _nextId,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.delete, color: Colors.red),
+                          onPressed: () {
+                            _confirmDelete(context, receita.id);
+                          },
+                        ),
+                      ],
                     ),
                   ),
                 );
+
               },
             ),
           ),
