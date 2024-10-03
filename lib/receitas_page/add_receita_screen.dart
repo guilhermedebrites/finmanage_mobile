@@ -4,9 +4,14 @@ import 'package:finmanage_mobile/Receita.dart';
 class AddReceitaScreen extends StatefulWidget {
   final Function(Receita) onAddReceita;
   final int nextId;
+  final Receita? receitaParaEditar; // Parâmetro opcional para edição
 
-  const AddReceitaScreen(
-      {super.key, required this.onAddReceita, required this.nextId});
+  const AddReceitaScreen({
+    super.key,
+    required this.onAddReceita,
+    required this.nextId,
+    this.receitaParaEditar, // Parâmetro opcional
+  });
 
   @override
   _AddReceitaScreenState createState() => _AddReceitaScreenState();
@@ -17,6 +22,18 @@ class _AddReceitaScreenState extends State<AddReceitaScreen> {
   final TextEditingController _valueController = TextEditingController();
   final TextEditingController _categoryController = TextEditingController();
   final TextEditingController _dateController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+
+    if (widget.receitaParaEditar != null) {
+      _nameController.text = widget.receitaParaEditar!.name;
+      _valueController.text = widget.receitaParaEditar!.value.toString();
+      _categoryController.text = widget.receitaParaEditar!.idCategory.toString();
+      _dateController.text = widget.receitaParaEditar!.date.toIso8601String().split('T')[0];
+    }
+  }
 
   @override
   void dispose() {
@@ -35,8 +52,8 @@ class _AddReceitaScreenState extends State<AddReceitaScreen> {
     final DateTime? date = DateTime.tryParse(_dateController.text);
 
     if (name.isNotEmpty && value != null && date != null) {
-      final newReceita = Receita(
-        id: widget.nextId,
+      final receita = Receita(
+        id: widget.receitaParaEditar?.id ?? widget.nextId, // Usa o ID existente se estiver editando
         value: value,
         idCategory: category,
         idUser: userId,
@@ -44,8 +61,7 @@ class _AddReceitaScreenState extends State<AddReceitaScreen> {
         date: date,
       );
 
-      widget
-          .onAddReceita(newReceita);
+      widget.onAddReceita(receita); // Adiciona ou edita a receita
       Navigator.pop(context);
     }
   }
@@ -54,7 +70,7 @@ class _AddReceitaScreenState extends State<AddReceitaScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Adicionar Receita"),
+        title: Text(widget.receitaParaEditar != null ? "Editar Receita" : "Adicionar Receita"),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -89,9 +105,8 @@ class _AddReceitaScreenState extends State<AddReceitaScreen> {
             ),
             const SizedBox(height: 20),
             ElevatedButton(
-              onPressed:
-              _saveReceita,
-              child: const Text("Salvar"),
+              onPressed: _saveReceita,
+              child: Text(widget.receitaParaEditar != null ? "Salvar Alterações" : "Salvar"),
             ),
           ],
         ),
