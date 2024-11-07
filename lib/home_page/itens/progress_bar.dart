@@ -14,6 +14,8 @@ class ProgressBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final totalValue = redValue + greenValue;
 
+    final validTotalValue = totalValue > 0 ? totalValue : 1;
+
     return Stack(
       children: [
         Container(
@@ -26,7 +28,7 @@ class ProgressBar extends StatelessWidget {
         Row(
           children: [
             Expanded(
-              flex: (greenValue / totalValue * 100).round(),
+              flex: (greenValue / validTotalValue * 100).round(),
               child: Container(
                 height: 20,
                 decoration: const BoxDecoration(
@@ -39,7 +41,7 @@ class ProgressBar extends StatelessWidget {
               ),
             ),
             Expanded(
-              flex: (redValue / totalValue * 100).round(),
+              flex: (redValue / validTotalValue * 100).round(),
               child: Container(
                 height: 20,
                 decoration: const BoxDecoration(

@@ -4,15 +4,13 @@ import 'package:finmanage_mobile/home_page/itens/box_icon.dart';
 import 'package:flutter/material.dart';
 import '../Category.dart';
 import 'package:finmanage_mobile/receitas_page/add_receita_screen.dart';
-
+import '../repository/database_helper.dart';
 
 class ReceitasScreen extends StatefulWidget {
-  final List<Receita> receitas;
+  final int userId;
   final List<Category> categories;
 
-  const ReceitasScreen(
-      {super.key, required this.receitas, required this.categories})
-      : super();
+  const ReceitasScreen({super.key, required this.userId, required this.categories});
 
   @override
   _ReceitasScreenState createState() => _ReceitasScreenState();
@@ -20,17 +18,32 @@ class ReceitasScreen extends StatefulWidget {
 
 class _ReceitasScreenState extends State<ReceitasScreen> {
   int _nextId = 1;
+  List<Receita> _receitas = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadReceitas();
+  }
+
+  Future<void> _loadReceitas() async {
+    final receitas = await DatabaseHelper.instance.getReceitas(widget.userId);
+    setState(() {
+      _receitas = receitas;
+    });
+  }
 
   void _addReceita(Receita novaReceita) {
     setState(() {
-      widget.receitas.add(novaReceita);
+      _receitas.add(novaReceita);
       _nextId++;
     });
   }
 
-  void _deleteReceita(int id) {
+  void _deleteReceita(int id) async {
+    await DatabaseHelper.instance.deleteReceita(id);
     setState(() {
-      widget.receitas.removeWhere((receita) => receita.id == id);
+      _receitas.removeWhere((receita) => receita.id == id);
     });
   }
 
@@ -45,14 +58,14 @@ class _ReceitasScreenState extends State<ReceitasScreen> {
             TextButton(
               child: Text('Cancelar'),
               onPressed: () {
-                Navigator.of(context).pop(); // Fecha o diálogo
+                Navigator.of(context).pop();
               },
             ),
             TextButton(
               child: Text('Deletar'),
               onPressed: () {
                 _deleteReceita(id);
-                Navigator.of(context).pop(); // Fecha o diálogo
+                Navigator.of(context).pop();
               },
             ),
           ],
@@ -63,9 +76,9 @@ class _ReceitasScreenState extends State<ReceitasScreen> {
 
   void _editReceita(Receita receitaEditada) {
     setState(() {
-      final index = widget.receitas.indexWhere((receita) => receita.id == receitaEditada.id);
+      final index = _receitas.indexWhere((receita) => receita.id == receitaEditada.id);
       if (index != -1) {
-        widget.receitas[index] = receitaEditada;
+        _receitas[index] = receitaEditada;
       }
     });
   }
@@ -91,9 +104,9 @@ class _ReceitasScreenState extends State<ReceitasScreen> {
           ),
           Expanded(
             child: ListView.builder(
-              itemCount: widget.receitas.length,
+              itemCount: _receitas.length,
               itemBuilder: (context, index) {
-                final receita = widget.receitas[index];
+                final receita = _receitas[index];
                 final category = widget.categories
                     .firstWhere((category) =>
                 widget.categories.indexOf(category) ==
@@ -125,6 +138,7 @@ class _ReceitasScreenState extends State<ReceitasScreen> {
                                   onAddReceita: _editReceita,
                                   receitaParaEditar: receita,
                                   nextId: _nextId,
+                                  userId: widget.userId,
                                 ),
                               ),
                             );
@@ -133,7 +147,7 @@ class _ReceitasScreenState extends State<ReceitasScreen> {
                         IconButton(
                           icon: Icon(Icons.delete, color: Colors.red),
                           onPressed: () {
-                            _confirmDelete(context, receita.id);
+                            _confirmDelete(context, receita.id!);
                           },
                         ),
                       ],
@@ -148,7 +162,7 @@ class _ReceitasScreenState extends State<ReceitasScreen> {
         ],
       ),
       floatingActionButton: Padding(
-        padding: const EdgeInsets.only(bottom: 10.0), // Adjust the value as needed
+        padding: const EdgeInsets.only(bottom: 10.0),
         child: FloatingActionButton(
           backgroundColor: Colors.white,
           onPressed: () {
@@ -158,6 +172,7 @@ class _ReceitasScreenState extends State<ReceitasScreen> {
                 builder: (context) => AddReceitaScreen(
                   onAddReceita: _addReceita,
                   nextId: _nextId,
+                  userId: widget.userId,
                 ),
               ),
             );

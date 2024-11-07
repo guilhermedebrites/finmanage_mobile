@@ -4,13 +4,13 @@ import 'package:finmanage_mobile/home_page/itens/box_icon.dart';
 import 'package:flutter/material.dart';
 import '../Category.dart';
 import '../Despesa.dart';
+import '../repository/database_helper.dart';
 
 class DespesasScreen extends StatefulWidget {
-  final List<Despesa> despesas;
+  final int userId;
   final List<Category> categories;
 
-  const DespesasScreen(
-      {super.key, required this.despesas, required this.categories}) : super();
+  const DespesasScreen({super.key, required this.userId, required this.categories});
 
   @override
   _DespesasScreenState createState() => _DespesasScreenState();
@@ -18,17 +18,32 @@ class DespesasScreen extends StatefulWidget {
 
 class _DespesasScreenState extends State<DespesasScreen> {
   int _nextId = 1;
+  List<Despesa> _despesas = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDespesas();
+  }
+
+  Future<void> _loadDespesas() async {
+    final despesas = await DatabaseHelper.instance.getDespesas(widget.userId);
+    setState(() {
+      _despesas = despesas;
+    });
+  }
 
   void _addDespesa(Despesa novaDespesa) {
     setState(() {
-      widget.despesas.add(novaDespesa);
+      _despesas.add(novaDespesa);
       _nextId++;
     });
   }
 
-  void _deleteDespesa(int id) {
+  void _deleteDespesa(int id) async {
+    await DatabaseHelper.instance.deleteDespesa(id);
     setState(() {
-      widget.despesas.removeWhere((despesa) => despesa.id == id);
+      _despesas.removeWhere((despesa) => despesa.id == id);
     });
   }
 
@@ -43,14 +58,14 @@ class _DespesasScreenState extends State<DespesasScreen> {
             TextButton(
               child: Text('Cancelar'),
               onPressed: () {
-                Navigator.of(context).pop(); // Fecha o diálogo
+                Navigator.of(context).pop();
               },
             ),
             TextButton(
               child: Text('Deletar'),
               onPressed: () {
                 _deleteDespesa(id);
-                Navigator.of(context).pop(); // Fecha o diálogo
+                Navigator.of(context).pop();
               },
             ),
           ],
@@ -61,9 +76,9 @@ class _DespesasScreenState extends State<DespesasScreen> {
 
   void _editDespesa(Despesa despesaEditada) {
     setState(() {
-      final index = widget.despesas.indexWhere((despesa) => despesa.id == despesaEditada.id);
+      final index = _despesas.indexWhere((despesa) => despesa.id == despesaEditada.id);
       if (index != -1) {
-        widget.despesas[index] = despesaEditada;
+        _despesas[index] = despesaEditada;
       }
     });
   }
@@ -89,9 +104,9 @@ class _DespesasScreenState extends State<DespesasScreen> {
           ),
           Expanded(
             child: ListView.builder(
-              itemCount: widget.despesas.length,
+              itemCount: _despesas.length,
               itemBuilder: (context, index) {
-                final despesa = widget.despesas[index];
+                final despesa = _despesas[index];
                 final category = widget.categories
                     .firstWhere((category) =>
                 widget.categories.indexOf(category) ==
@@ -120,9 +135,10 @@ class _DespesasScreenState extends State<DespesasScreen> {
                               context,
                               MaterialPageRoute(
                                 builder: (context) => AddDespesaScreen(
-                                  onAddDespesa: _editDespesa, // Método de edição
-                                  despesaParaEditar: despesa,  // Passa a despesa a ser editada
-                                  nextId: _nextId,             // Caso queira reutilizar
+                                  onAddDespesa: _editDespesa,
+                                  despesaParaEditar: despesa,
+                                  nextId: _nextId,
+                                  userId: widget.userId,
                                 ),
                               ),
                             );
@@ -131,7 +147,7 @@ class _DespesasScreenState extends State<DespesasScreen> {
                         IconButton(
                           icon: Icon(Icons.delete, color: Colors.red),
                           onPressed: () {
-                            _confirmDelete(context, despesa.id);
+                            _confirmDelete(context, despesa.id!);
                           },
                         ),
                       ],
@@ -147,7 +163,7 @@ class _DespesasScreenState extends State<DespesasScreen> {
         ],
       ),
       floatingActionButton: Padding(
-        padding: const EdgeInsets.only(bottom: 10.0), // Adjust the value as needed
+        padding: const EdgeInsets.only(bottom: 10.0),
         child: FloatingActionButton(
           backgroundColor: Colors.white,
           onPressed: () {
@@ -157,6 +173,7 @@ class _DespesasScreenState extends State<DespesasScreen> {
                 builder: (context) => AddDespesaScreen(
                   onAddDespesa: _addDespesa,
                   nextId: _nextId,
+                  userId: widget.userId,
                 ),
               ),
             );
