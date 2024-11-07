@@ -1,16 +1,19 @@
 import 'package:finmanage_mobile/Despesa.dart';
 import 'package:flutter/material.dart';
+import '../../repository/database_helper.dart';
 
 class AddDespesaScreen extends StatefulWidget {
   final Function(Despesa) onAddDespesa;
   final int nextId;
-  final Despesa? despesaParaEditar; // Parâmetro opcional para edição
+  final int userId;
+  final Despesa? despesaParaEditar;
 
   const AddDespesaScreen({
     super.key,
     required this.onAddDespesa,
     required this.nextId,
-    this.despesaParaEditar, // Parâmetro opcional
+    required this.userId,
+    this.despesaParaEditar,
   });
 
   @override
@@ -28,7 +31,6 @@ class _AddDespesaScreenState extends State<AddDespesaScreen> {
     super.initState();
 
     if (widget.despesaParaEditar != null) {
-      // Preenche os campos com os valores da despesa a ser editada
       _nameController.text = widget.despesaParaEditar!.name;
       _valueController.text = widget.despesaParaEditar!.value.toString();
       _categoryController.text = widget.despesaParaEditar!.idCategory.toString();
@@ -45,25 +47,54 @@ class _AddDespesaScreenState extends State<AddDespesaScreen> {
     super.dispose();
   }
 
-  void _saveDespesa() {
+  Future<void> _saveDespesa() async {
     final String name = _nameController.text;
     final double? value = double.tryParse(_valueController.text);
     final int category = int.tryParse(_categoryController.text) ?? 1;
-    const int userId = 1;
     final DateTime? date = DateTime.tryParse(_dateController.text);
 
     if (name.isNotEmpty && value != null && date != null) {
-      final despesa = Despesa(
-        id: widget.despesaParaEditar?.id ?? widget.nextId, // Usa o ID existente para edição ou gera um novo
-        value: value,
-        idCategory: category,
-        idUser: userId,
-        name: name,
-        date: date,
+      final db = await DatabaseHelper.instance.database;
+      final List<Map<String, dynamic>> categoryExists = await db.query(
+        'categorias',
+        where: 'id = ?',
+        whereArgs: [category],
       );
 
-      widget.onAddDespesa(despesa); // Adiciona ou edita a despesa
-      Navigator.pop(context);
+      if (categoryExists.isNotEmpty) {
+        Despesa despesa;
+        if (widget.despesaParaEditar != null) {
+          despesa = Despesa(
+            id: widget.despesaParaEditar!.id,
+            value: value,
+            idCategory: category,
+            idUser: widget.userId,
+            name: name,
+            date: date,
+          );
+        } else {
+          despesa = Despesa(
+            value: value,
+            idCategory: category,
+            idUser: widget.userId,
+            name: name,
+            date: date,
+          );
+        }
+
+        if (widget.despesaParaEditar == null) {
+          await DatabaseHelper.instance.insertDespesa(despesa);
+        } else {
+          await DatabaseHelper.instance.updateDespesa(despesa);
+        }
+
+        widget.onAddDespesa(despesa);
+        Navigator.pop(context);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Invalid category ID')),
+        );
+      }
     }
   }
 

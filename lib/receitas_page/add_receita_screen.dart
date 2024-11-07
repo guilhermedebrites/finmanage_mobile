@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:finmanage_mobile/Receita.dart';
+import '../repository/database_helper.dart';
 
 class AddReceitaScreen extends StatefulWidget {
   final Function(Receita) onAddReceita;
   final int nextId;
-  final Receita? receitaParaEditar; // Parâmetro opcional para edição
+  final int userId;
+  final Receita? receitaParaEditar;
 
   const AddReceitaScreen({
     super.key,
     required this.onAddReceita,
     required this.nextId,
-    this.receitaParaEditar, // Parâmetro opcional
+    required this.userId,
+    this.receitaParaEditar,
   });
 
   @override
@@ -44,25 +47,65 @@ class _AddReceitaScreenState extends State<AddReceitaScreen> {
     super.dispose();
   }
 
-  void _saveReceita() {
+  Future<void> _saveReceita() async {
     final String name = _nameController.text;
     final double? value = double.tryParse(_valueController.text);
     final int category = int.tryParse(_categoryController.text) ?? 1;
-    const int userId = 1;
     final DateTime? date = DateTime.tryParse(_dateController.text);
 
+    print('Name: $name');
+    print('Value: $value');
+    print('Category: $category');
+    print('Date: $date');
+
     if (name.isNotEmpty && value != null && date != null) {
-      final receita = Receita(
-        id: widget.receitaParaEditar?.id ?? widget.nextId, // Usa o ID existente se estiver editando
-        value: value,
-        idCategory: category,
-        idUser: userId,
-        name: name,
-        date: date,
+      final db = await DatabaseHelper.instance.database;
+      final List<Map<String, dynamic>> categoryExists = await db.query(
+        'categorias',
+        where: 'id = ?',
+        whereArgs: [category],
       );
 
-      widget.onAddReceita(receita); // Adiciona ou edita a receita
-      Navigator.pop(context);
+      print('Category exists: ${categoryExists.isNotEmpty}');
+
+      if (categoryExists.isNotEmpty) {
+        Receita receita;
+        if (widget.receitaParaEditar != null) {
+          receita = Receita(
+            id: widget.receitaParaEditar!.id,
+            value: value,
+            idCategory: category,
+            idUser: widget.userId,
+            name: name,
+            date: date,
+          );
+        } else {
+          receita = Receita(
+            value: value,
+            idCategory: category,
+            idUser: widget.userId,
+            name: name,
+            date: date,
+          );
+        }
+
+        if (widget.receitaParaEditar == null) {
+          await DatabaseHelper.instance.insertReceita(receita);
+          print('Receita inserted');
+        } else {
+          await DatabaseHelper.instance.updateReceita(receita);
+          print('Receita updated');
+        }
+
+        widget.onAddReceita(receita);
+        Navigator.pop(context);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Invalid category ID')),
+        );
+      }
+    } else {
+      print('Invalid input');
     }
   }
 

@@ -1,3 +1,4 @@
+import 'package:finmanage_mobile/repository/database_helper.dart';
 import 'package:flutter/material.dart';
 
 import '../../starter_page/main_screen.dart';
@@ -14,6 +15,25 @@ class _InputsLoginState extends State<InputsLogin> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
+  Future<void> _login() async {
+    if (_formKey.currentState!.validate()) {
+      final email = _emailController.text;
+      final password = _passwordController.text;
+
+      final user = await DatabaseHelper.instance.getUser(email, password);
+
+      if (user != null) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => MainScreen(user: user)),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Invalid email or password')),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +50,7 @@ class _InputsLoginState extends State<InputsLogin> {
               ),
             ),
             validator: (email) {
-              if(email == null || email.isEmpty) {
+              if (email == null || email.isEmpty) {
                 return 'Digite seu e-mail';
               }
               return null;
@@ -47,7 +67,7 @@ class _InputsLoginState extends State<InputsLogin> {
               ),
             ),
             validator: (password) {
-              if(password == null || password.isEmpty) {
+              if (password == null || password.isEmpty) {
                 return 'Digite sua senha';
               }
               return null;
@@ -56,20 +76,15 @@ class _InputsLoginState extends State<InputsLogin> {
           ),
           const SizedBox(height: 20),
           ElevatedButton(
-            onPressed: () {
-              if(_formKey.currentState!.validate()){
-                Navigator.push(context, MaterialPageRoute(builder: (context) => MainScreen()));
-              }
-            },
+            onPressed: _login,
             style: ElevatedButton.styleFrom(
-            foregroundColor: Colors.white,
-            backgroundColor: const Color(0xFF4C9581),
+              foregroundColor: Colors.white,
+              backgroundColor: const Color(0xFF4C9581),
             ),
             child: const Text('Acessar'),
-          )
+          ),
         ],
       ),
     );
   }
-
 }
