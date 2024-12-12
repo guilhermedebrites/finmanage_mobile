@@ -1,11 +1,9 @@
-import 'package:flutter/material.dart';
-
 class Despesa {
-  final int? id;
+  final String? id;
   final double value;
   final String name;
   final int idCategory;
-  final int idUser;
+  final String idUser;
   final DateTime date;
 
   Despesa({

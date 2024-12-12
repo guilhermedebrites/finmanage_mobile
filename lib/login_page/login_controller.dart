@@ -1,6 +1,8 @@
-import 'package:finmanage_mobile/login_page/items/login_inputs.dart';
-import 'package:finmanage_mobile/login_page/items/register_inputs.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+
+import '../starter_page/main_screen.dart';
 
 class LoginController extends StatefulWidget {
   const LoginController({super.key});
@@ -10,12 +12,29 @@ class LoginController extends StatefulWidget {
 }
 
 class _LoginControllerState extends State<LoginController> {
-  bool _showRegister = false;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
 
-  void _toggleForm() {
-    setState(() {
-      _showRegister = !_showRegister;
-    });
+  Future<void> _signInWithGoogle() async {
+    try {
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      final GoogleSignInAuthentication? googleAuth = await googleUser?.authentication;
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth?.accessToken,
+        idToken: googleAuth?.idToken,
+      );
+      final UserCredential userCredential = await _auth.signInWithCredential(credential);
+      var user = userCredential.user;
+      if (user != null) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => MainScreen(user: user)),
+        );
+      }
+    } on FirebaseAuthException catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erro ao fazer login: ${e.message}')));
+    }
   }
 
   @override
@@ -24,18 +43,14 @@ class _LoginControllerState extends State<LoginController> {
       width: 340,
       child: Column(
         children: [
-          if (_showRegister)
-            const InputsRegister()
-          else
-            const InputsLogin(),
           const SizedBox(height: 20),
           ElevatedButton(
-            onPressed: _toggleForm,
+            onPressed: _signInWithGoogle,
             style: ElevatedButton.styleFrom(
               foregroundColor: Colors.white,
               backgroundColor: const Color(0xFF4C9581),
             ),
-            child: Text(_showRegister ? 'Voltar ao Login' : 'Cadastrar'),
+            child: const Text('Entrar com Google'),
           ),
         ],
       ),

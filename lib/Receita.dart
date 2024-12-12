@@ -1,10 +1,8 @@
-import 'package:flutter/material.dart';
-
 class Receita {
-  final int? id;
+  final String? id;
   final double value;
   final int idCategory;
-  final int idUser;
+  final String idUser;
   final String name;
   final DateTime date;
 

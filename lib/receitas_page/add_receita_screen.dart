@@ -1,3 +1,4 @@
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:finmanage_mobile/Receita.dart';
 import '../repository/database_helper.dart';
@@ -5,7 +6,7 @@ import '../repository/database_helper.dart';
 class AddReceitaScreen extends StatefulWidget {
   final Function(Receita) onAddReceita;
   final int nextId;
-  final int userId;
+  final String userId;
   final Receita? receitaParaEditar;
 
   const AddReceitaScreen({
@@ -59,16 +60,12 @@ class _AddReceitaScreenState extends State<AddReceitaScreen> {
     print('Date: $date');
 
     if (name.isNotEmpty && value != null && date != null) {
-      final db = await DatabaseHelper.instance.database;
-      final List<Map<String, dynamic>> categoryExists = await db.query(
-        'categorias',
-        where: 'id = ?',
-        whereArgs: [category],
-      );
+      final DatabaseReference ref = FirebaseDatabase.instance.ref('categorias');
+      final DataSnapshot snapshot = await ref.orderByChild('id').equalTo(category).get();
 
-      print('Category exists: ${categoryExists.isNotEmpty}');
+      print('Category exists: ${snapshot.exists}');
 
-      if (categoryExists.isNotEmpty) {
+      if (snapshot.exists) {
         Receita receita;
         if (widget.receitaParaEditar != null) {
           receita = Receita(

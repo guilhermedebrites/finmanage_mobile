@@ -34,20 +34,6 @@ class StartScreenWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
-      future: DatabaseHelper.instance.database,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          print('Database is initializing...');
-          return const Center(child: CircularProgressIndicator());
-        } else if (snapshot.hasError) {
-          print('Error initializing database: ${snapshot.error}');
-          return const Center(child: Text('Error initializing database'));
-        } else {
-          print('Database initialized successfully');
-          return const StartScreen();
-        }
-      },
-    );
+      return const StartScreen();
   }
 }

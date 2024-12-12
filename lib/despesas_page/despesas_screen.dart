@@ -7,7 +7,7 @@ import '../Despesa.dart';
 import '../repository/database_helper.dart';
 
 class DespesasScreen extends StatefulWidget {
-  final int userId;
+  final String userId;
   final List<Category> categories;
 
   const DespesasScreen({super.key, required this.userId, required this.categories});
@@ -40,14 +40,14 @@ class _DespesasScreenState extends State<DespesasScreen> {
     });
   }
 
-  void _deleteDespesa(int id) async {
+  void _deleteDespesa(String id) async {
     await DatabaseHelper.instance.deleteDespesa(id);
     setState(() {
       _despesas.removeWhere((despesa) => despesa.id == id);
     });
   }
 
-  void _confirmDelete(BuildContext context, int id) {
+  void _confirmDelete(BuildContext context, String id) {
     showDialog(
       context: context,
       builder: (BuildContext context) {

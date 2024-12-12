@@ -7,7 +7,7 @@ import 'package:finmanage_mobile/receitas_page/add_receita_screen.dart';
 import '../repository/database_helper.dart';
 
 class ReceitasScreen extends StatefulWidget {
-  final int userId;
+  final String userId;
   final List<Category> categories;
 
   const ReceitasScreen({super.key, required this.userId, required this.categories});
@@ -40,14 +40,14 @@ class _ReceitasScreenState extends State<ReceitasScreen> {
     });
   }
 
-  void _deleteReceita(int id) async {
+  void _deleteReceita(String id) async {
     await DatabaseHelper.instance.deleteReceita(id);
     setState(() {
       _receitas.removeWhere((receita) => receita.id == id);
     });
   }
 
-  void _confirmDelete(BuildContext context, int id) {
+  void _confirmDelete(BuildContext context, String id) {
     showDialog(
       context: context,
       builder: (BuildContext context) {

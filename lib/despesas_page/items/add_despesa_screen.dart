@@ -1,11 +1,12 @@
 import 'package:finmanage_mobile/Despesa.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import '../../repository/database_helper.dart';
 
 class AddDespesaScreen extends StatefulWidget {
   final Function(Despesa) onAddDespesa;
   final int nextId;
-  final int userId;
+  final String userId;
   final Despesa? despesaParaEditar;
 
   const AddDespesaScreen({
@@ -54,14 +55,10 @@ class _AddDespesaScreenState extends State<AddDespesaScreen> {
     final DateTime? date = DateTime.tryParse(_dateController.text);
 
     if (name.isNotEmpty && value != null && date != null) {
-      final db = await DatabaseHelper.instance.database;
-      final List<Map<String, dynamic>> categoryExists = await db.query(
-        'categorias',
-        where: 'id = ?',
-        whereArgs: [category],
-      );
+      final DatabaseReference ref = FirebaseDatabase.instance.ref('categorias');
+      final DataSnapshot snapshot = await ref.orderByChild('id').equalTo(category).get();
 
-      if (categoryExists.isNotEmpty) {
+      if (snapshot.exists) {
         Despesa despesa;
         if (widget.despesaParaEditar != null) {
           despesa = Despesa(
@@ -95,6 +92,8 @@ class _AddDespesaScreenState extends State<AddDespesaScreen> {
           const SnackBar(content: Text('Invalid category ID')),
         );
       }
+    } else {
+      print('Invalid input');
     }
   }
 

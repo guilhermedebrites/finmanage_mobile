@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import '../Category.dart';
 import '../Despesa.dart';
 import '../Receita.dart';
-import '../User.dart';
 import '../despesas_page/despesas_screen.dart';
 import '../home_page/home_screen.dart';
 import '../receitas_page/receitas_screen.dart';
@@ -23,49 +23,15 @@ class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 1;
 
   Future<List<Category>> getCategorias() async {
-    final db = await DatabaseHelper.instance.database;
-    final List<Map<String, dynamic>> maps = await db.query('categorias');
-
-    return List.generate(maps.length, (i) {
-      return Category(
-        id: maps[i]['id'],
-        name: maps[i]['name'],
-        icon: getIconData(maps[i]['icon']),
-        color: getColor(maps[i]['color']),
-      );
-    });
+    return await DatabaseHelper.instance.getCategorias();
   }
 
-  Future<List<Despesa>> getDespesas(int userId) async {
-    final db = await DatabaseHelper.instance.database;
-    final List<Map<String, dynamic>> maps = await db.query('despesas', where: 'idUser = ?', whereArgs: [userId]);
-
-    return List.generate(maps.length, (i) {
-      return Despesa(
-        id: maps[i]['id'],
-        value: maps[i]['value'],
-        name: maps[i]['name'],
-        idCategory: maps[i]['idCategory'],
-        idUser: maps[i]['idUser'],
-        date: DateTime.parse(maps[i]['date']),
-      );
-    });
+  Future<List<Despesa>> getDespesas(String userId) async {
+    return await DatabaseHelper.instance.getDespesas(userId);
   }
 
-  Future<List<Receita>> getReceitas(int userId) async {
-    final db = await DatabaseHelper.instance.database;
-    final List<Map<String, dynamic>> maps = await db.query('receitas', where: 'idUser = ?', whereArgs: [userId]);
-
-    return List.generate(maps.length, (i) {
-      return Receita(
-        id: maps[i]['id'],
-        value: maps[i]['value'],
-        name: maps[i]['name'],
-        idCategory: maps[i]['idCategory'],
-        idUser: maps[i]['idUser'],
-        date: DateTime.parse(maps[i]['date']),
-      );
-    });
+  Future<List<Receita>> getReceitas(String userId) async {
+    return await DatabaseHelper.instance.getReceitas(userId);
   }
 
   @override
@@ -73,8 +39,8 @@ class _MainScreenState extends State<MainScreen> {
     return FutureBuilder(
       future: Future.wait([
         getCategorias(),
-        getDespesas(widget.user.id!),
-        getReceitas(widget.user.id!)
+        getDespesas(widget.user.uid),
+        getReceitas(widget.user.uid)
       ]),
       builder: (context, AsyncSnapshot<List<dynamic>> snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -92,7 +58,7 @@ class _MainScreenState extends State<MainScreen> {
 
           final List<Widget> _screens = [
             DespesasScreen(
-              userId: widget.user.id!,
+              userId: widget.user.uid,
               categories: categories,
             ),
             HomeScreen(
@@ -101,7 +67,7 @@ class _MainScreenState extends State<MainScreen> {
               categories: categories,
             ),
             ReceitasScreen(
-              userId: widget.user.id!,
+              userId: widget.user.uid,
               categories: categories,
             ),
           ];
