@@ -2,6 +2,7 @@ import 'package:finmanage_mobile/Despesa.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import '../../repository/database_helper.dart';
+import '../../Category.dart';
 
 class AddDespesaScreen extends StatefulWidget {
   final Function(Despesa) onAddDespesa;
@@ -24,26 +25,36 @@ class AddDespesaScreen extends StatefulWidget {
 class _AddDespesaScreenState extends State<AddDespesaScreen> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _valueController = TextEditingController();
-  final TextEditingController _categoryController = TextEditingController();
   final TextEditingController _dateController = TextEditingController();
+  List<Category> _categories = [];
+  Category? _selectedCategory;
 
   @override
   void initState() {
     super.initState();
+    _loadCategories();
 
     if (widget.despesaParaEditar != null) {
       _nameController.text = widget.despesaParaEditar!.name;
       _valueController.text = widget.despesaParaEditar!.value.toString();
-      _categoryController.text = widget.despesaParaEditar!.idCategory.toString();
       _dateController.text = widget.despesaParaEditar!.date.toIso8601String().split('T')[0];
     }
+  }
+
+  Future<void> _loadCategories() async {
+    final categories = await DatabaseHelper.instance.getCategorias();
+    setState(() {
+      _categories = categories;
+      if (widget.despesaParaEditar != null) {
+        _selectedCategory = _categories.firstWhere((category) => category.id == widget.despesaParaEditar!.idCategory);
+      }
+    });
   }
 
   @override
   void dispose() {
     _nameController.dispose();
     _valueController.dispose();
-    _categoryController.dispose();
     _dateController.dispose();
     super.dispose();
   }
@@ -51,49 +62,55 @@ class _AddDespesaScreenState extends State<AddDespesaScreen> {
   Future<void> _saveDespesa() async {
     final String name = _nameController.text;
     final double? value = double.tryParse(_valueController.text);
-    final int category = int.tryParse(_categoryController.text) ?? 1;
     final DateTime? date = DateTime.tryParse(_dateController.text);
 
-    if (name.isNotEmpty && value != null && date != null) {
-      final DatabaseReference ref = FirebaseDatabase.instance.ref('categorias');
-      final DataSnapshot snapshot = await ref.orderByChild('id').equalTo(category).get();
-
-      if (snapshot.exists) {
-        Despesa despesa;
-        if (widget.despesaParaEditar != null) {
-          despesa = Despesa(
-            id: widget.despesaParaEditar!.id,
-            value: value,
-            idCategory: category,
-            idUser: widget.userId,
-            name: name,
-            date: date,
-          );
-        } else {
-          despesa = Despesa(
-            value: value,
-            idCategory: category,
-            idUser: widget.userId,
-            name: name,
-            date: date,
-          );
-        }
-
-        if (widget.despesaParaEditar == null) {
-          await DatabaseHelper.instance.insertDespesa(despesa);
-        } else {
-          await DatabaseHelper.instance.updateDespesa(despesa);
-        }
-
-        widget.onAddDespesa(despesa);
-        Navigator.pop(context);
+    if (name.isNotEmpty && value != null && date != null && _selectedCategory != null) {
+      Despesa despesa;
+      if (widget.despesaParaEditar != null) {
+        despesa = Despesa(
+          id: widget.despesaParaEditar!.id,
+          value: value,
+          idCategory: _selectedCategory!.id,
+          idUser: widget.userId,
+          name: name,
+          date: date,
+        );
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Invalid category ID')),
+        despesa = Despesa(
+          value: value,
+          idCategory: _selectedCategory!.id,
+          idUser: widget.userId,
+          name: name,
+          date: date,
         );
       }
+
+      if (widget.despesaParaEditar == null) {
+        await DatabaseHelper.instance.insertDespesa(despesa);
+      } else {
+        await DatabaseHelper.instance.updateDespesa(despesa);
+      }
+
+      widget.onAddDespesa(despesa);
+      Navigator.pop(context);
     } else {
-      print('Invalid input');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please fill all fields')),
+      );
+    }
+  }
+
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2101),
+    );
+    if (picked != null) {
+      setState(() {
+        _dateController.text = picked.toIso8601String().split('T')[0];
+      });
     }
   }
 
@@ -120,19 +137,28 @@ class _AddDespesaScreenState extends State<AddDespesaScreen> {
               ),
               keyboardType: TextInputType.number,
             ),
-            TextField(
-              controller: _categoryController,
-              decoration: const InputDecoration(
-                labelText: "Id Categoria",
-              ),
-              keyboardType: TextInputType.number,
+            DropdownButton<Category>(
+              value: _selectedCategory,
+              hint: const Text("Selecione uma Categoria"),
+              onChanged: (Category? newValue) {
+                setState(() {
+                  _selectedCategory = newValue;
+                });
+              },
+              items: _categories.map<DropdownMenuItem<Category>>((Category category) {
+                return DropdownMenuItem<Category>(
+                  value: category,
+                  child: Text(category.name),
+                );
+              }).toList(),
             ),
             TextField(
               controller: _dateController,
               decoration: const InputDecoration(
-                labelText: "Data (AAAA-MM-DD)",
+                labelText: "Data",
               ),
-              keyboardType: TextInputType.datetime,
+              readOnly: true,
+              onTap: () => _selectDate(context),
             ),
             const SizedBox(height: 20),
             ElevatedButton(

@@ -2,6 +2,7 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:finmanage_mobile/Receita.dart';
 import '../repository/database_helper.dart';
+import '../Category.dart';
 
 class AddReceitaScreen extends StatefulWidget {
   final Function(Receita) onAddReceita;
@@ -24,26 +25,36 @@ class AddReceitaScreen extends StatefulWidget {
 class _AddReceitaScreenState extends State<AddReceitaScreen> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _valueController = TextEditingController();
-  final TextEditingController _categoryController = TextEditingController();
   final TextEditingController _dateController = TextEditingController();
+  List<Category> _categories = [];
+  Category? _selectedCategory;
 
   @override
   void initState() {
     super.initState();
+    _loadCategories();
 
     if (widget.receitaParaEditar != null) {
       _nameController.text = widget.receitaParaEditar!.name;
       _valueController.text = widget.receitaParaEditar!.value.toString();
-      _categoryController.text = widget.receitaParaEditar!.idCategory.toString();
       _dateController.text = widget.receitaParaEditar!.date.toIso8601String().split('T')[0];
     }
+  }
+
+  Future<void> _loadCategories() async {
+    final categories = await DatabaseHelper.instance.getCategorias();
+    setState(() {
+      _categories = categories;
+      if (widget.receitaParaEditar != null) {
+        _selectedCategory = _categories.firstWhere((category) => category.id == widget.receitaParaEditar!.idCategory);
+      }
+    });
   }
 
   @override
   void dispose() {
     _nameController.dispose();
     _valueController.dispose();
-    _categoryController.dispose();
     _dateController.dispose();
     super.dispose();
   }
@@ -51,58 +62,55 @@ class _AddReceitaScreenState extends State<AddReceitaScreen> {
   Future<void> _saveReceita() async {
     final String name = _nameController.text;
     final double? value = double.tryParse(_valueController.text);
-    final int category = int.tryParse(_categoryController.text) ?? 1;
     final DateTime? date = DateTime.tryParse(_dateController.text);
 
-    print('Name: $name');
-    print('Value: $value');
-    print('Category: $category');
-    print('Date: $date');
-
-    if (name.isNotEmpty && value != null && date != null) {
-      final DatabaseReference ref = FirebaseDatabase.instance.ref('categorias');
-      final DataSnapshot snapshot = await ref.orderByChild('id').equalTo(category).get();
-
-      print('Category exists: ${snapshot.exists}');
-
-      if (snapshot.exists) {
-        Receita receita;
-        if (widget.receitaParaEditar != null) {
-          receita = Receita(
-            id: widget.receitaParaEditar!.id,
-            value: value,
-            idCategory: category,
-            idUser: widget.userId,
-            name: name,
-            date: date,
-          );
-        } else {
-          receita = Receita(
-            value: value,
-            idCategory: category,
-            idUser: widget.userId,
-            name: name,
-            date: date,
-          );
-        }
-
-        if (widget.receitaParaEditar == null) {
-          await DatabaseHelper.instance.insertReceita(receita);
-          print('Receita inserted');
-        } else {
-          await DatabaseHelper.instance.updateReceita(receita);
-          print('Receita updated');
-        }
-
-        widget.onAddReceita(receita);
-        Navigator.pop(context);
+    if (name.isNotEmpty && value != null && date != null && _selectedCategory != null) {
+      Receita receita;
+      if (widget.receitaParaEditar != null) {
+        receita = Receita(
+          id: widget.receitaParaEditar!.id,
+          value: value,
+          idCategory: _selectedCategory!.id,
+          idUser: widget.userId,
+          name: name,
+          date: date,
+        );
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Invalid category ID')),
+        receita = Receita(
+          value: value,
+          idCategory: _selectedCategory!.id,
+          idUser: widget.userId,
+          name: name,
+          date: date,
         );
       }
+
+      if (widget.receitaParaEditar == null) {
+        await DatabaseHelper.instance.insertReceita(receita);
+      } else {
+        await DatabaseHelper.instance.updateReceita(receita);
+      }
+
+      widget.onAddReceita(receita);
+      Navigator.pop(context);
     } else {
-      print('Invalid input');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please fill all fields')),
+      );
+    }
+  }
+
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2101),
+    );
+    if (picked != null) {
+      setState(() {
+        _dateController.text = picked.toIso8601String().split('T')[0];
+      });
     }
   }
 
@@ -129,19 +137,28 @@ class _AddReceitaScreenState extends State<AddReceitaScreen> {
               ),
               keyboardType: TextInputType.number,
             ),
-            TextField(
-              controller: _categoryController,
-              decoration: const InputDecoration(
-                labelText: "Id Categoria",
-              ),
-              keyboardType: TextInputType.number,
+            DropdownButton<Category>(
+              value: _selectedCategory,
+              hint: const Text("Selecione uma Categoria"),
+              onChanged: (Category? newValue) {
+                setState(() {
+                  _selectedCategory = newValue;
+                });
+              },
+              items: _categories.map<DropdownMenuItem<Category>>((Category category) {
+                return DropdownMenuItem<Category>(
+                  value: category,
+                  child: Text(category.name),
+                );
+              }).toList(),
             ),
             TextField(
               controller: _dateController,
               decoration: const InputDecoration(
-                labelText: "Data (AAAA-MM-DD)",
+                labelText: "Data",
               ),
-              keyboardType: TextInputType.datetime,
+              readOnly: true,
+              onTap: () => _selectDate(context),
             ),
             const SizedBox(height: 20),
             ElevatedButton(
